@@ -1,4 +1,5 @@
 mod image;
+mod vec3;
 
 use image::Image;
 
