@@ -1,7 +1,10 @@
 mod image;
 mod vec3;
+mod ray;
 
-use image::Image;
+pub use image::*;
+pub use vec3::*;
+pub use ray::*;
 
 use std::io::Write;
 
