@@ -6,31 +6,49 @@ pub use image::*;
 pub use vec3::*;
 pub use ray::*;
 
-use std::io::Write;
-
-const IMAGE_W: u32 = 256;
-const IMAGE_H: u32 = 256;
+const ASPECT_RATIO: f32 = 16.0 / 9.0;
+const IMAGE_W: u32 = 400;
+const IMAGE_H: u32 = (IMAGE_W as f32 / ASPECT_RATIO) as u32;
 
 fn calc_percents(y: u32) -> i32 {
-    (100.0 - (y as f32 / IMAGE_H as f32)*100.0) as i32
+    ((y as f32 / IMAGE_H as f32)*100.0).round() as i32
+}
+
+fn ray_color(ray: &Ray) -> Vec3 {
+    let unit_dir = ray.direction.normalized();
+    let t = 0.5*(unit_dir.1 + 1.0);
+    (1.0 - t)*Vec3(1.0, 1.0, 1.0) + t*Vec3(0.5, 0.7, 1.0)
 }
 
 fn main() {
     let mut image = Image::new(IMAGE_W, IMAGE_H);
 
-    for y in (0..IMAGE_H).rev() {
-        println!("Progress: {}%", calc_percents(y));
-        std::io::stdout().flush().unwrap();
+    let vp = {
+        let vp_h = 2.0;
+        let vp_w = ASPECT_RATIO as f64*vp_h;
+        (vp_w, vp_h)
+    };
+    let focal_length = 1.0;
+
+    let origin = Vec3(0.0, 0.0, 0.0);
+    let h_axis = Vec3(vp.0, 0.0, 0.0);
+    let v_axis = Vec3(0.0, vp.1, 0.0);
+    let lower_left_corner = origin - h_axis / 2.0 - v_axis / 2.0 - Vec3(0.0, 0.0, focal_length);
+
+    let mut last_progress = -1;
+    for y in 0..IMAGE_H {
+        let progress = calc_percents(y);
+        if progress != last_progress {
+            last_progress = progress;
+            println!("Progress: {}%", progress);
+        }
+
         for x in 0..IMAGE_W {
-            let r = x as f64 / (IMAGE_W - 1) as f64;
-            let g = y as f64 / (IMAGE_H - 1) as f64;
-            let b = 0.25;
+            let u = x as f64 / (IMAGE_W - 1) as f64;
+            let v = y as f64 / (IMAGE_H - 1) as f64;
+            let ray = Ray::new(origin, lower_left_corner + u*h_axis + v*v_axis - origin);
 
-            let ir = (255.999*r) as u8;
-            let ig = (255.999*g) as u8;
-            let ib = (255.999*b) as u8;
-
-            image.set_pixel(x, y, [ir, ig, ib]);
+            image.set_pixel(x, IMAGE_H - y - 1, &ray_color(&ray));
         }
     }
     image.save("result.ppm");
