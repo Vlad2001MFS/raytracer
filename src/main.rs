@@ -17,8 +17,11 @@ fn calc_percents(y: u32) -> i32 {
 }
 
 fn ray_color(ray: &Ray) -> Vec3 {
-    if ray.hit_sphere(&Sphere::new(Vec3(0.0, 0.0, -1.0), 0.5)) {
-        return Vec3(1.0, 0.0, 0.0);
+    let sphere = Sphere::new(Vec3(0.0, 0.0, -1.0), 0.5);
+    let t = ray.hit_sphere(&sphere);
+    if t > 0.0 {
+        let sphere_normal = ray.at(t) - sphere.origin;
+        return 0.5*Vec3(sphere_normal.0 + 1.0, sphere_normal.1 + 1.0, sphere_normal.2 + 1.0);
     }
 
     let unit_dir = ray.direction.normalized();
