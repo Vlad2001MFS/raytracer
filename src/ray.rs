@@ -24,15 +24,19 @@ impl Ray {
         //  dot((t^2)*b, b) = (t^2)*bX*bX + (t^2)*bY*bY + (t^2)*bZ*bZ = (t^2)*(bX*bX + bY*bY + bZ*bZ)
         // dot(b, b)*(t^2) + 2*dot(b, A - C)*t + dot(A - C, A - C) - r^2 = 0
         // A        *(t^2) + B              *t + C                       = 0
-        let a = self.direction.dot(self.direction);
-        let b = 2.0*self.direction.dot(self.origin - sphere.origin);
-        let c = (self.origin - sphere.origin).dot(self.origin - sphere.origin) - sphere.radius*sphere.radius;
-        let d = b*b - 4.0*a*c;
+        // x = (-B +- sqrt(B^2 - 4*A*C)) / (2*A)
+        //   = (-2*half_B +- sqrt((2*half_B)^2 - 4*A*C)) / (2*A)
+        //   = (-2*half_B +- 2*sqrt(half_B^2 - A*C)) / (2*A)
+        //   = (-half_B +- sqrt(half_B^2 - A*C)) / A
+        let a = self.direction.length_sq();
+        let half_b = self.direction.dot(self.origin - sphere.origin);
+        let c = (self.origin - sphere.origin).length_sq() - sphere.radius*sphere.radius;
+        let d = half_b*half_b - a*c;
         if d < 0.0 {
             -1.0
         }
         else {
-            (-b - d.sqrt()) / (2.0*a)
+            (-half_b - d.sqrt()) / a
         }
     }
 }
