@@ -140,6 +140,14 @@ impl Vec3 {
         self.length_sq().sqrt()
     }
 
+    pub fn distance_sq(&self, target: Vec3) -> f64 {
+        (target - *self).length_sq()
+    }
+
+    pub fn distance(&self, target: Vec3) -> f64 {
+        self.distance_sq(target).sqrt()
+    }
+
     pub fn dot(&self, rhs: Vec3) -> f64 {
         self.0*rhs.0 + self.1*rhs.1 + self.2*rhs.2
     }
