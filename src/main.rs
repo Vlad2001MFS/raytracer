@@ -1,10 +1,12 @@
 mod image;
 mod vec3;
 mod ray;
+mod sphere;
 
 pub use image::*;
 pub use vec3::*;
 pub use ray::*;
+pub use sphere::*;
 
 const ASPECT_RATIO: f32 = 16.0 / 9.0;
 const IMAGE_W: u32 = 400;
@@ -15,6 +17,10 @@ fn calc_percents(y: u32) -> i32 {
 }
 
 fn ray_color(ray: &Ray) -> Vec3 {
+    if ray.hit_sphere(&Sphere::new(Vec3(0.0, 0.0, -1.0), 0.5)) {
+        return Vec3(1.0, 0.0, 0.0);
+    }
+
     let unit_dir = ray.direction.normalized();
     let t = 0.5*(unit_dir.1 + 1.0);
     (1.0 - t)*Vec3(1.0, 1.0, 1.0) + t*Vec3(0.5, 0.7, 1.0)
