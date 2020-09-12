@@ -1,5 +1,12 @@
 extern crate rand;
 
+use rand::{
+    Rng,
+    distributions::{
+        Uniform,
+    },
+};
+
 mod image;
 mod vec3;
 mod ray;
@@ -17,7 +24,7 @@ pub use camera::*;
 const ASPECT_RATIO: f64 = 16.0 / 9.0;
 const IMAGE_W: u32 = 400;
 const IMAGE_H: u32 = (IMAGE_W as f64 / ASPECT_RATIO) as u32;
-const SAMPLES_PER_PIXEL: u32 = 1;
+const SAMPLES_PER_PIXEL: u32 = 100;
 
 fn ray_color(ray: &Ray, scene: &Scene) -> Vec3 {
     if let Some(info) = scene.hit_ray(&ray, 0.0, std::f64::INFINITY) {
@@ -46,23 +53,19 @@ fn main() {
             println!("Progress: {}%", progress);
         }
 
+        let mut rand_gen = rand::thread_rng();
+        let rand_distrib = Uniform::new_inclusive(0.0, 1.0);
         for x in 0..IMAGE_W {
             let mut total_pixel_color = Vec3(0.0, 0.0, 0.0);
-            for i in 0..SAMPLES_PER_PIXEL {
-                let u = (x as f64 + rand::random::<f64>()) / (IMAGE_W - 1) as f64;
-                let v = (y as f64 + rand::random::<f64>()) / (IMAGE_H - 1) as f64;
+            for _ in 0..SAMPLES_PER_PIXEL {
+                let u = (x as f64 + rand_gen.sample::<f64, _>(rand_distrib)) / (IMAGE_W - 1) as f64;
+                let v = (y as f64 + rand_gen.sample::<f64, _>(rand_distrib)) / (IMAGE_H - 1) as f64;
                 let ray = camera.calc_ray(u, v);
                 total_pixel_color += ray_color(&ray, &scene);
             }
 
             let pixel_color = total_pixel_color / SAMPLES_PER_PIXEL as f64;
             image.set_pixel(x, IMAGE_H - y - 1, &pixel_color);
-
-            /*let u = x as f64 / (IMAGE_W - 1) as f64;
-            let v = y as f64 / (IMAGE_H - 1) as f64;
-            let ray = camera.calc_ray(u, v);
-
-            image.set_pixel(x, IMAGE_H - y - 1, &ray_color(&ray, &scene));*/
         }
     }
     image.save("result.ppm");
