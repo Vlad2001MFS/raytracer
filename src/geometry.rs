@@ -1,5 +1,7 @@
-use crate::Vec3;
-use crate::Ray;
+use crate::{
+    Vec3, Ray, Material,
+};
+use std::rc::Rc;
 
 #[derive(Clone)]
 pub struct HitInfo {
@@ -7,6 +9,7 @@ pub struct HitInfo {
     normal: Vec3,
     t: f64,
     is_front_face: bool,
+    material: Rc<Material>,
 }
 
 impl HitInfo {
@@ -24,6 +27,10 @@ impl HitInfo {
 
     pub fn is_front_face(&self) -> bool {
         self.is_front_face
+    }
+    
+    pub fn material(&self) -> &Rc<Material> {
+        &self.material
     }
 }
 
@@ -44,13 +51,15 @@ impl Geometry {
 pub struct Sphere {
     pub origin: Vec3,
     pub radius: f64,
+    pub material: Rc<Material>,
 }
 
 impl Sphere {
-    pub fn new(origin: Vec3, radius: f64) -> Sphere {
+    pub fn new(origin: Vec3, radius: f64, material: Rc<Material>) -> Sphere {
         Sphere {
             origin,
             radius,
+            material,
         }
     }
 
@@ -88,6 +97,7 @@ impl Sphere {
                         normal: if is_front_face { normal } else { -normal },
                         t: *temp,
                         is_front_face,
+                        material: self.material.clone(),
                     })
                 }
             }

@@ -10,9 +10,6 @@ use std::{
 
 use rand::{
     Rng,
-    distributions::{
-        Distribution,
-    },
 };
 
 #[derive(Debug, Clone, Copy)]
@@ -171,18 +168,22 @@ impl Vec3 {
         self / self.length()
     }
 
-    pub fn random(rand_gen: &mut impl Rng) -> Vec3 {
-        Vec3(rand_gen.gen(), rand_gen.gen(), rand_gen.gen())
+    pub fn reflected(self, normal: Vec3) -> Vec3 {
+        self - 2.0*self.dot(normal)*normal
     }
 
-    pub fn random_range(rand_gen: &mut impl Rng, rand_dist: &impl Distribution<f64>) -> Vec3 {
-        Vec3(rand_gen.sample(rand_dist), rand_gen.sample(rand_dist), rand_gen.sample(rand_dist))
+    pub fn random() -> Vec3 {
+        Vec3(rand::random(), rand::random(), rand::random())
     }
 
-    pub fn random_unit_vector(rand_gen: &mut impl Rng, rand_dist_0_2pi: &impl Distribution<f64>, rand_dist_neg1_1: &impl Distribution<f64>) -> Vec3 {
-        let a = rand_gen.sample(rand_dist_0_2pi);
-        let z = rand_gen.sample(rand_dist_neg1_1);
-        let r = (1.0 - z*z).sqrt();
+    pub fn random_range(min: f64, max: f64) -> Vec3 {
+        Vec3(rand::thread_rng().gen_range(min, max), rand::thread_rng().gen_range(min, max), rand::thread_rng().gen_range(min, max))
+    }
+
+    pub fn random_unit_vector() -> Vec3 {
+        let a = rand::thread_rng().gen_range(0.0, 2.0*std::f64::consts::PI);
+        let z = rand::thread_rng().gen_range(-1.0, 1.0);
+        let r = (1.0_f64 - z*z).sqrt();
         let sin_cos = a.sin_cos();
         Vec3(r*sin_cos.1, r*sin_cos.0, z)
     }
