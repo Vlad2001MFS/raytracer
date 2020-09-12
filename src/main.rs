@@ -3,7 +3,7 @@ extern crate rand;
 use rand::{
     Rng,
     distributions::{
-        Uniform,
+        Distribution, Uniform,
     },
 };
 
@@ -27,15 +27,15 @@ const IMAGE_H: u32 = (IMAGE_W as f64 / ASPECT_RATIO) as u32;
 const SAMPLES_PER_PIXEL: u32 = 100;
 const MAX_DEPTH: u32 = 50;
 
-fn ray_color(ray: &Ray, scene: &Scene, depth: u32) -> Vec3 {
+fn ray_color(ray: &Ray, scene: &Scene, depth: u32, rand_gen: &mut impl Rng, rand_dist_0_2pi: &impl Distribution<f64>, rand_dist_neg1_1: &impl Distribution<f64>) -> Vec3 {
     if depth <= 0 {
         return Vec3(0.0, 0.0, 0.0)
     }
 
     if let Some(info) = scene.hit_ray(&ray, 0.001, std::f64::INFINITY) {
-        let target = info.point().clone() + info.normal().clone() + Vec3::random_unit_sphere();
+        let target = info.point().clone() + info.normal().clone() + Vec3::random_unit_vector(rand_gen, rand_dist_0_2pi, rand_dist_neg1_1);
         let next_ray = Ray::new(info.point().clone(), target - info.point().clone());
-        return 0.5*ray_color(&next_ray, scene, depth - 1);
+        return 0.5*ray_color(&next_ray, scene, depth - 1, rand_gen, rand_dist_0_2pi, rand_dist_neg1_1);
     }
 
     let unit_dir = ray.direction.normalized();
@@ -62,13 +62,15 @@ fn main() {
 
         let mut rand_gen = rand::thread_rng();
         let rand_distrib = Uniform::new_inclusive(0.0, 1.0);
+        let rand_distrib_0_2pi = Uniform::new_inclusive(0.0, 2.0*std::f64::consts::PI);
+        let rand_distrib_neg1_1 = Uniform::new_inclusive(-1.0, 1.0);
         for x in 0..IMAGE_W {
             let mut total_pixel_color = Vec3(0.0, 0.0, 0.0);
             for _ in 0..SAMPLES_PER_PIXEL {
                 let u = (x as f64 + rand_gen.sample::<f64, _>(rand_distrib)) / (IMAGE_W - 1) as f64;
                 let v = (y as f64 + rand_gen.sample::<f64, _>(rand_distrib)) / (IMAGE_H - 1) as f64;
                 let ray = camera.calc_ray(u, v);
-                total_pixel_color += ray_color(&ray, &scene, MAX_DEPTH);
+                total_pixel_color += ray_color(&ray, &scene, MAX_DEPTH, &mut rand_gen, &rand_distrib_0_2pi, &rand_distrib_neg1_1);
             }
 
             let pixel_color = total_pixel_color / SAMPLES_PER_PIXEL as f64;

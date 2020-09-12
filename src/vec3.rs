@@ -11,7 +11,7 @@ use std::{
 use rand::{
     Rng,
     distributions::{
-        Uniform,
+        Distribution,
     },
 };
 
@@ -171,23 +171,19 @@ impl Vec3 {
         self / self.length()
     }
 
-    pub fn random() -> Vec3 {
-        let mut rand_gen = rand::thread_rng();
+    pub fn random(rand_gen: &mut impl Rng) -> Vec3 {
         Vec3(rand_gen.gen(), rand_gen.gen(), rand_gen.gen())
     }
 
-    pub fn random_range(min: f64, max: f64) -> Vec3 {
-        let mut rand_gen = rand::thread_rng();
-        let rand_distrib = Uniform::new_inclusive(min, max);
-        Vec3(rand_gen.sample(rand_distrib), rand_gen.sample(rand_distrib), rand_gen.sample(rand_distrib))
+    pub fn random_range(rand_gen: &mut impl Rng, rand_dist: &impl Distribution<f64>) -> Vec3 {
+        Vec3(rand_gen.sample(rand_dist), rand_gen.sample(rand_dist), rand_gen.sample(rand_dist))
     }
 
-    pub fn random_unit_sphere() -> Vec3 {
-        loop {
-            let point = Self::random_range(-1.0, 1.0);
-            if point.length_sq() < 1.0 {
-                return point
-            }
-        }
+    pub fn random_unit_vector(rand_gen: &mut impl Rng, rand_dist_0_2pi: &impl Distribution<f64>, rand_dist_neg1_1: &impl Distribution<f64>) -> Vec3 {
+        let a = rand_gen.sample(rand_dist_0_2pi);
+        let z = rand_gen.sample(rand_dist_neg1_1);
+        let r = (1.0 - z*z).sqrt();
+        let sin_cos = a.sin_cos();
+        Vec3(r*sin_cos.1, r*sin_cos.0, z)
     }
 }
