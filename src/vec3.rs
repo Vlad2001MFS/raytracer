@@ -8,6 +8,13 @@ use std::{
     }
 };
 
+use rand::{
+    Rng,
+    distributions::{
+        Uniform,
+    },
+};
+
 #[derive(Debug, Clone, Copy)]
 pub struct Vec3(pub f64, pub f64, pub f64);
 
@@ -162,5 +169,25 @@ impl Vec3 {
     
     pub fn normalized(self) -> Vec3 {
         self / self.length()
+    }
+
+    pub fn random() -> Vec3 {
+        let mut rand_gen = rand::thread_rng();
+        Vec3(rand_gen.gen(), rand_gen.gen(), rand_gen.gen())
+    }
+
+    pub fn random_range(min: f64, max: f64) -> Vec3 {
+        let mut rand_gen = rand::thread_rng();
+        let rand_distrib = Uniform::new_inclusive(min, max);
+        Vec3(rand_gen.sample(rand_distrib), rand_gen.sample(rand_distrib), rand_gen.sample(rand_distrib))
+    }
+
+    pub fn random_unit_sphere() -> Vec3 {
+        loop {
+            let point = Self::random_range(-1.0, 1.0);
+            if point.length_sq() < 1.0 {
+                return point
+            }
+        }
     }
 }
