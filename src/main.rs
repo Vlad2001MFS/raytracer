@@ -25,10 +25,17 @@ const ASPECT_RATIO: f64 = 16.0 / 9.0;
 const IMAGE_W: u32 = 400;
 const IMAGE_H: u32 = (IMAGE_W as f64 / ASPECT_RATIO) as u32;
 const SAMPLES_PER_PIXEL: u32 = 100;
+const MAX_DEPTH: u32 = 50;
 
-fn ray_color(ray: &Ray, scene: &Scene) -> Vec3 {
+fn ray_color(ray: &Ray, scene: &Scene, depth: u32) -> Vec3 {
+    if depth <= 0 {
+        return Vec3(0.0, 0.0, 0.0)
+    }
+
     if let Some(info) = scene.hit_ray(&ray, 0.0, std::f64::INFINITY) {
-        return 0.5*(info.normal().clone() + Vec3(1.0, 1.0, 1.0));
+        let target = info.point().clone() + info.normal().clone() + Vec3::random_unit_sphere();
+        let next_ray = Ray::new(info.point().clone(), target - info.point().clone());
+        return 0.5*ray_color(&next_ray, scene, depth - 1);
     }
 
     let unit_dir = ray.direction.normalized();
@@ -61,7 +68,7 @@ fn main() {
                 let u = (x as f64 + rand_gen.sample::<f64, _>(rand_distrib)) / (IMAGE_W - 1) as f64;
                 let v = (y as f64 + rand_gen.sample::<f64, _>(rand_distrib)) / (IMAGE_H - 1) as f64;
                 let ray = camera.calc_ray(u, v);
-                total_pixel_color += ray_color(&ray, &scene);
+                total_pixel_color += ray_color(&ray, &scene, MAX_DEPTH);
             }
 
             let pixel_color = total_pixel_color / SAMPLES_PER_PIXEL as f64;
@@ -71,5 +78,4 @@ fn main() {
     image.save("result.ppm");
 
     println!("Done!");
-    std::io::stdin().read_line(&mut String::new()).unwrap();
 }
