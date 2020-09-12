@@ -32,7 +32,7 @@ fn ray_color(ray: &Ray, scene: &Scene, depth: u32) -> Vec3 {
         return Vec3(0.0, 0.0, 0.0)
     }
 
-    if let Some(info) = scene.hit_ray(&ray, 0.0, std::f64::INFINITY) {
+    if let Some(info) = scene.hit_ray(&ray, 0.001, std::f64::INFINITY) {
         let target = info.point().clone() + info.normal().clone() + Vec3::random_unit_sphere();
         let next_ray = Ray::new(info.point().clone(), target - info.point().clone());
         return 0.5*ray_color(&next_ray, scene, depth - 1);
