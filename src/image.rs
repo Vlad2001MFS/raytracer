@@ -26,9 +26,13 @@ impl Image {
         file.write_fmt(format_args!("P3\n{} {}\n255\n", self.size.0, self.size.1)).unwrap();
 
         for texel in self.data.iter() {
-            let ir = (255.999*texel.0) as i32;
-            let ig = (255.999*texel.1) as i32;
-            let ib = (255.999*texel.2) as i32;
+            let r = texel.0.sqrt();
+            let g = texel.1.sqrt();
+            let b = texel.2.sqrt();
+
+            let ir = (255.999*r) as i32;
+            let ig = (255.999*g) as i32;
+            let ib = (255.999*b) as i32;
 
             file.write_fmt(format_args!("{} {} {}\n", ir, ig, ib)).unwrap();
         }
