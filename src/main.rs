@@ -54,8 +54,8 @@ fn main() {
 
     let ground_mtl = Rc::new(Material::Lambertian(LambertianMtl::new(Vec3(0.8, 0.8, 0.0))));
     let center_mtl = Rc::new(Material::Lambertian(LambertianMtl::new(Vec3(0.7, 0.3, 0.3))));
-    let left_mtl = Rc::new(Material::Metal(MetalMtl::new(Vec3(0.8, 0.8, 0.8))));
-    let right_mtl = Rc::new(Material::Metal(MetalMtl::new(Vec3(0.8, 0.6, 0.2))));
+    let left_mtl = Rc::new(Material::Metal(MetalMtl::new(Vec3(0.8, 0.8, 0.8), 0.3)));
+    let right_mtl = Rc::new(Material::Metal(MetalMtl::new(Vec3(0.8, 0.6, 0.2), 1.0)));
 
     scene.add(Geometry::Sphere(Sphere::new(Vec3( 0.0, -100.5, -1.0), 100.0, ground_mtl)));
     scene.add(Geometry::Sphere(Sphere::new(Vec3( 0.0,  0.0,   -1.0), 0.5,   center_mtl)));

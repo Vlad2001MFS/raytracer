@@ -57,17 +57,20 @@ impl LambertianMtl {
 #[derive(Clone)]
 pub struct MetalMtl {
     albedo: Vec3,
+    fuzziness: f64,
 }
 
 impl MetalMtl {
-    pub fn new(albedo: Vec3) -> MetalMtl {
+    pub fn new(albedo: Vec3, fuzziness: f64) -> MetalMtl {
         MetalMtl {
-            albedo
+            albedo,
+            fuzziness: fuzziness.min(1.0).max(0.0),
         }
     }
 
     pub fn scatter(&self, ray_in: &Ray, hit_info: &HitInfo) -> Option<ScatterInfo> {
-        let scattered_ray = Ray::new(hit_info.point().clone(), ray_in.direction.reflected(hit_info.normal().clone()));
+        let reflected = ray_in.direction.reflected(hit_info.normal().clone());
+        let scattered_ray = Ray::new(hit_info.point().clone(), reflected + Vec3::random_unit_vector()*self.fuzziness);
         if scattered_ray.direction.dot(hit_info.normal().clone()) > 0.0 {
             Some(ScatterInfo {
                 attenuation: self.albedo,
