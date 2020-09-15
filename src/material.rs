@@ -22,6 +22,7 @@ impl ScatterInfo {
 pub enum Material {
     Lambertian(LambertianMtl),
     Metal(MetalMtl),
+    Dielectric(DielectricMtl),
 }
 
 impl Material {
@@ -29,6 +30,7 @@ impl Material {
         match self {
             Material::Lambertian(mtl) => mtl.scatter(ray_in, hit_info),
             Material::Metal(mtl) => mtl.scatter(ray_in, hit_info),
+            Material::Dielectric(mtl) => mtl.scatter(ray_in, hit_info),
         }
     }
 }
@@ -80,5 +82,29 @@ impl MetalMtl {
         else {
             None
         }
+    }
+}
+
+#[derive(Clone)]
+pub struct DielectricMtl {
+    ref_idx: f64
+}
+
+impl DielectricMtl {
+    pub fn new(ref_idx: f64) -> DielectricMtl {
+        DielectricMtl {
+            ref_idx
+        }
+    }
+
+    pub fn scatter(&self, ray_in: &Ray, hit_info: &HitInfo) -> Option<ScatterInfo> {
+        Some(ScatterInfo {
+            attenuation: Vec3(1.0, 1.0, 1.0),
+            scattered_ray: {
+                let etai_over_etat = if hit_info.is_front_face() { 1.0 / self.ref_idx } else { self.ref_idx };
+                let refracted = ray_in.direction.normalized().refracted(hit_info.normal().clone(), etai_over_etat);
+                Ray::new(hit_info.point().clone(), refracted)
+            }
+        })
     }
 }

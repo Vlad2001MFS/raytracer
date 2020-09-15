@@ -53,8 +53,8 @@ fn main() {
     let mut scene = Scene::new();
 
     let ground_mtl = Rc::new(Material::Lambertian(LambertianMtl::new(Vec3(0.8, 0.8, 0.0))));
-    let center_mtl = Rc::new(Material::Lambertian(LambertianMtl::new(Vec3(0.7, 0.3, 0.3))));
-    let left_mtl = Rc::new(Material::Metal(MetalMtl::new(Vec3(0.8, 0.8, 0.8), 0.3)));
+    let center_mtl = Rc::new(Material::Dielectric(DielectricMtl::new(1.5)));
+    let left_mtl = Rc::new(Material::Dielectric(DielectricMtl::new(1.5)));
     let right_mtl = Rc::new(Material::Metal(MetalMtl::new(Vec3(0.8, 0.6, 0.2), 1.0)));
 
     scene.add(Geometry::Sphere(Sphere::new(Vec3( 0.0, -100.5, -1.0), 100.0, ground_mtl)));
@@ -75,7 +75,7 @@ fn main() {
         }
 
         let mut rand_gen = rand::thread_rng();
-        let rand_distrib = Uniform::new_inclusive(0.0, 1.0);
+        let rand_distrib = Uniform::new(0.0, 1.0);
         for x in 0..IMAGE_W {
             let mut total_pixel_color = Vec3(0.0, 0.0, 0.0);
             for _ in 0..SAMPLES_PER_PIXEL {
