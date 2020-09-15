@@ -10,6 +10,7 @@ use std::{
 
 use rand::{
     Rng,
+    distributions::Uniform,
 };
 
 #[derive(Debug, Clone, Copy)]
@@ -193,5 +194,16 @@ impl Vec3 {
         let r = (1.0_f64 - z*z).sqrt();
         let sin_cos = a.sin_cos();
         Vec3(r*sin_cos.1, r*sin_cos.0, z)
+    }
+
+    pub fn random_in_unit_disk() -> Vec3 {
+        let mut rand_gen = rand::thread_rng();
+        let rand_dist = Uniform::new(-1.0, 1.0);
+        loop {
+            let p = Vec3(rand_gen.sample(rand_dist), rand_gen.sample(rand_dist), 0.0);
+            if p.length_sq() < 1.0 {
+                return p;
+            }
+        }
     }
 }
