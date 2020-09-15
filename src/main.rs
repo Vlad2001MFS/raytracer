@@ -25,7 +25,7 @@ pub use scene::*;
 pub use camera::*;
 pub use material::*;
 
-const ASPECT_RATIO: f64 = 16.0 / 9.0;
+const ASPECT_RATIO: f64 = 3.0 / 2.0;
 const IMAGE_W: u32 = 400;
 const IMAGE_H: u32 = (IMAGE_W as f64 / ASPECT_RATIO) as u32;
 const SAMPLES_PER_PIXEL: u32 = 100;
@@ -49,23 +49,74 @@ fn ray_color(ray: &Ray, scene: &Scene, depth: u32) -> Vec3 {
     (1.0 - t)*Vec3(1.0, 1.0, 1.0) + t*Vec3(0.5, 0.7, 1.0)
 }
 
-fn main() {
+fn random_scene() -> Scene {
     let mut scene = Scene::new();
 
-    let ground_mtl = Rc::new(Material::Lambertian(LambertianMtl::new(Vec3(0.8, 0.8, 0.0))));
+    let ground_mtl = Rc::new(Material::Lambertian(LambertianMtl::new(Vec3(0.5, 0.5, 0.5))));
+    scene.add(Geometry::Sphere(Sphere::new(Vec3(0.0, -1000.0, 0.0), 1000.0, ground_mtl.clone())));
+
+    for a in -11..11 {
+        for b in -11..11 {
+            let choose_mat: f64 = rand::random();
+            let center = Vec3(a as f64 + 0.9*rand::random::<f64>(), 0.2, b as f64 + 0.9*rand::random::<f64>());
+
+            if (center - Vec3(4.0, 0.2, 0.0)).length() > 0.9 {
+                let sphere_mtl = if choose_mat < 0.8 {
+                    let albedo = Vec3::random()*Vec3::random();
+                    Rc::new(Material::Lambertian(LambertianMtl::new(albedo)))
+                }
+                else if choose_mat < 0.95 {
+                    let albedo = Vec3::random_range(0.5, 1.0);
+                    let fuzz = rand::thread_rng().gen_range(0.0, 0.5);
+                    Rc::new(Material::Metal(MetalMtl::new(albedo, fuzz)))
+                }
+                else {
+                    Rc::new(Material::Dielectric(DielectricMtl::new(1.5)))
+                };
+                scene.add(Geometry::Sphere(Sphere::new(center, 0.2, sphere_mtl)));
+            }
+        }
+    }
+
+    let mtl1 = Rc::new(Material::Dielectric(DielectricMtl::new(1.5)));
+    scene.add(Geometry::Sphere(Sphere::new(Vec3(0.0, 1.0, 0.0), 1.0, mtl1)));
+
+    let mtl2 = Rc::new(Material::Lambertian(LambertianMtl::new(Vec3(0.4, 0.2, 0.1))));
+    scene.add(Geometry::Sphere(Sphere::new(Vec3(-4.0, 1.0, 0.0), 1.0, mtl2)));
+    
+    let mtl3 = Rc::new(Material::Metal(MetalMtl::new(Vec3(0.7, 0.6, 0.5), 0.0)));
+    scene.add(Geometry::Sphere(Sphere::new(Vec3(4.0, 1.0, 0.0), 1.0, mtl3)));
+
+    scene
+}
+
+fn main() {
+    let scene = random_scene();
+
+    /*let ground_mtl = Rc::new(Material::Lambertian(LambertianMtl::new(Vec3(0.8, 0.8, 0.0))));
     let center_mtl = Rc::new(Material::Lambertian(LambertianMtl::new(Vec3(0.1, 0.2, 0.5))));
     let left_mtl = Rc::new(Material::Dielectric(DielectricMtl::new(1.5)));
     let right_mtl = Rc::new(Material::Metal(MetalMtl::new(Vec3(0.8, 0.6, 0.2), 0.0)));
 
-    scene.add(Geometry::Sphere(Sphere::new(Vec3( 0.0, -100.5, -1.0), 100.0, ground_mtl)));
-    scene.add(Geometry::Sphere(Sphere::new(Vec3( 0.0,  0.0,   -1.0), 0.5,   center_mtl)));
-    scene.add(Geometry::Sphere(Sphere::new(Vec3(-1.0,  0.0,   -1.0), 0.5,   left_mtl.clone())));
-    scene.add(Geometry::Sphere(Sphere::new(Vec3(-1.0,  0.0,   -1.0), -0.4,  left_mtl.clone())));
-    scene.add(Geometry::Sphere(Sphere::new(Vec3( 1.0,  0.0,   -1.0), 0.5,   right_mtl)));
+    scene.add(Geometry::Sphere(Sphere::new(Vec3( 0.0, -100.5, -1.0),  100.0, ground_mtl)));
+    scene.add(Geometry::Sphere(Sphere::new(Vec3( 0.0,  0.0,   -1.0),  0.5,   center_mtl)));
+    scene.add(Geometry::Sphere(Sphere::new(Vec3(-1.0,  0.0,   -1.0),  0.5,   left_mtl.clone())));
+    scene.add(Geometry::Sphere(Sphere::new(Vec3(-1.0,  0.0,   -1.0), -0.45,  left_mtl.clone())));
+    scene.add(Geometry::Sphere(Sphere::new(Vec3( 1.0,  0.0,   -1.0),  0.5,   right_mtl)));*/
+
+    let eye = Vec3(13.0, 2.0, 3.0);
+    let target = Vec3(0.0, 0.0, 0.0);
+    let camera = Camera::new(
+        eye,
+        target,
+        Vec3(0.0, 1.0, 0.0),
+        20.0_f64.to_radians(),
+        ASPECT_RATIO,
+        0.1,
+        10.0
+    );
 
     let mut image = Image::new(IMAGE_W, IMAGE_H);
-
-    let camera = Camera::new(ASPECT_RATIO);
 
     let mut last_progress = -1;
     for y in 0..IMAGE_H {
