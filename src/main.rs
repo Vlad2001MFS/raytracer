@@ -59,7 +59,8 @@ fn main() {
 
     scene.add(Geometry::Sphere(Sphere::new(Vec3( 0.0, -100.5, -1.0), 100.0, ground_mtl)));
     scene.add(Geometry::Sphere(Sphere::new(Vec3( 0.0,  0.0,   -1.0), 0.5,   center_mtl)));
-    scene.add(Geometry::Sphere(Sphere::new(Vec3(-1.0,  0.0,   -1.0), 0.5,   left_mtl)));
+    scene.add(Geometry::Sphere(Sphere::new(Vec3(-1.0,  0.0,   -1.0), 0.5,   left_mtl.clone())));
+    scene.add(Geometry::Sphere(Sphere::new(Vec3(-1.0,  0.0,   -1.0), -0.4,  left_mtl.clone())));
     scene.add(Geometry::Sphere(Sphere::new(Vec3( 1.0,  0.0,   -1.0), 0.5,   right_mtl)));
 
     let mut image = Image::new(IMAGE_W, IMAGE_H);

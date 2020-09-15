@@ -85,6 +85,12 @@ impl MetalMtl {
     }
 }
 
+fn calc_shlick(cosine: f64, ref_idx: f64) -> f64 {
+    let r0 = (1.0 - ref_idx) / (1.0 + ref_idx);
+    let r0 = r0*r0;
+    r0 + (1.0 - r0)*(1.0 - cosine).powi(5)
+}
+
 #[derive(Clone)]
 pub struct DielectricMtl {
     ref_idx: f64
@@ -106,6 +112,9 @@ impl DielectricMtl {
                 let cos_theta = unit_dir.dot(-hit_info.normal().clone()).min(1.0);
                 let sin_theta = (1.0 - cos_theta*cos_theta).sqrt();
                 if etai_over_etat*sin_theta > 1.0 {
+                    Ray::new(hit_info.point().clone(), unit_dir.reflected(hit_info.normal().clone()))
+                }
+                else if rand::random::<f64>() < calc_shlick(cos_theta, etai_over_etat) {
                     Ray::new(hit_info.point().clone(), unit_dir.reflected(hit_info.normal().clone()))
                 }
                 else {
