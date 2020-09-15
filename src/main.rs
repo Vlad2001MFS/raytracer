@@ -53,9 +53,9 @@ fn main() {
     let mut scene = Scene::new();
 
     let ground_mtl = Rc::new(Material::Lambertian(LambertianMtl::new(Vec3(0.8, 0.8, 0.0))));
-    let center_mtl = Rc::new(Material::Dielectric(DielectricMtl::new(1.5)));
+    let center_mtl = Rc::new(Material::Lambertian(LambertianMtl::new(Vec3(0.1, 0.2, 0.5))));
     let left_mtl = Rc::new(Material::Dielectric(DielectricMtl::new(1.5)));
-    let right_mtl = Rc::new(Material::Metal(MetalMtl::new(Vec3(0.8, 0.6, 0.2), 1.0)));
+    let right_mtl = Rc::new(Material::Metal(MetalMtl::new(Vec3(0.8, 0.6, 0.2), 0.0)));
 
     scene.add(Geometry::Sphere(Sphere::new(Vec3( 0.0, -100.5, -1.0), 100.0, ground_mtl)));
     scene.add(Geometry::Sphere(Sphere::new(Vec3( 0.0,  0.0,   -1.0), 0.5,   center_mtl)));

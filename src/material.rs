@@ -102,8 +102,15 @@ impl DielectricMtl {
             attenuation: Vec3(1.0, 1.0, 1.0),
             scattered_ray: {
                 let etai_over_etat = if hit_info.is_front_face() { 1.0 / self.ref_idx } else { self.ref_idx };
-                let refracted = ray_in.direction.normalized().refracted(hit_info.normal().clone(), etai_over_etat);
-                Ray::new(hit_info.point().clone(), refracted)
+                let unit_dir = ray_in.direction.normalized();
+                let cos_theta = unit_dir.dot(-hit_info.normal().clone()).min(1.0);
+                let sin_theta = (1.0 - cos_theta*cos_theta).sqrt();
+                if etai_over_etat*sin_theta > 1.0 {
+                    Ray::new(hit_info.point().clone(), unit_dir.reflected(hit_info.normal().clone()))
+                }
+                else {
+                    Ray::new(hit_info.point().clone(), unit_dir.refracted(hit_info.normal().clone(), etai_over_etat))
+                }
             }
         })
     }
