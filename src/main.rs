@@ -8,6 +8,10 @@ use rand::{
 };
 
 use std::rc::Rc;
+use std::time::{
+    Duration,
+    SystemTime
+};
 
 mod image;
 mod vec3;
@@ -93,17 +97,6 @@ fn random_scene() -> Scene {
 fn main() {
     let scene = random_scene();
 
-    /*let ground_mtl = Rc::new(Material::Lambertian(LambertianMtl::new(Vec3(0.8, 0.8, 0.0))));
-    let center_mtl = Rc::new(Material::Lambertian(LambertianMtl::new(Vec3(0.1, 0.2, 0.5))));
-    let left_mtl = Rc::new(Material::Dielectric(DielectricMtl::new(1.5)));
-    let right_mtl = Rc::new(Material::Metal(MetalMtl::new(Vec3(0.8, 0.6, 0.2), 0.0)));
-
-    scene.add(Geometry::Sphere(Sphere::new(Vec3( 0.0, -100.5, -1.0),  100.0, ground_mtl)));
-    scene.add(Geometry::Sphere(Sphere::new(Vec3( 0.0,  0.0,   -1.0),  0.5,   center_mtl)));
-    scene.add(Geometry::Sphere(Sphere::new(Vec3(-1.0,  0.0,   -1.0),  0.5,   left_mtl.clone())));
-    scene.add(Geometry::Sphere(Sphere::new(Vec3(-1.0,  0.0,   -1.0), -0.45,  left_mtl.clone())));
-    scene.add(Geometry::Sphere(Sphere::new(Vec3( 1.0,  0.0,   -1.0),  0.5,   right_mtl)));*/
-
     let eye = Vec3(13.0, 2.0, 3.0);
     let target = Vec3(0.0, 0.0, 0.0);
     let camera = Camera::new(
@@ -118,17 +111,21 @@ fn main() {
 
     let mut image = Image::new(IMAGE_W, IMAGE_H);
 
-    let mut last_progress = -1;
-    for y in 0..IMAGE_H {
-        let progress = ((y as f32 / IMAGE_H as f32)*100.0).round() as i32;
-        if progress != last_progress {
-            last_progress = progress;
-            println!("Progress: {}%", progress);
-        }
+    let mut rand_gen = rand::thread_rng();
+    let rand_distrib = Uniform::new(0.0, 1.0);
 
-        let mut rand_gen = rand::thread_rng();
-        let rand_distrib = Uniform::new(0.0, 1.0);
+    let start_time = SystemTime::now();
+    let mut last_progress = -1.0;
+    for y in 0..IMAGE_H {
         for x in 0..IMAGE_W {
+            let progress = (x + y*IMAGE_W) as f32 / (IMAGE_W*IMAGE_H) as f32;
+            if (progress - last_progress) > 0.0001 {
+                last_progress = progress;
+                let elapsed_time = start_time.elapsed().unwrap().as_secs_f32() / 60.0;
+                let remaining_time = elapsed_time / progress;
+                println!("Progress: {:.2}% (elapsed {} min, remaining {} min)", progress*100.0, elapsed_time.round() as u32, remaining_time.round() as u32);
+            }
+
             let mut total_pixel_color = Vec3(0.0, 0.0, 0.0);
             for _ in 0..SAMPLES_PER_PIXEL {
                 let u = (x as f64 + rand_gen.sample::<f64, _>(rand_distrib)) / (IMAGE_W - 1) as f64;
